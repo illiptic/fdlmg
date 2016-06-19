@@ -10,7 +10,7 @@ class Program extends Component{
 
   render() {
     // Injected by connect() call:
-    const { filters, selected, shows, sort, sorting, activePage, selectPage, selectShow } = this.props;
+    const { filter, filters, selected, shows, sort, sorting, activePage, selectPage, selectShow } = this.props;
 
     let pageSize = 5;
     let selectRowProp = {
@@ -34,9 +34,12 @@ class Program extends Component{
     return (
       <div>
         <h1>Program</h1>
-        <input type="checkbox" value="filter.friday"/> Friday
-        <input type="checkbox" value="filter.saturday"/> Saturday
-        <input type="checkbox" value="filter.sunday"/> Sunday
+        {['friday', 'saturday', 'sunday'].map(day =>
+          <label key={day}>
+            <input type="checkbox" value={day} checked={filters[day]} onChange={filter}/>
+            {moment(day, "dddd").format("dddd")}
+          </label>
+        )}
         <table className="table table-striped table-hover">
           <thead>
             <tr>
@@ -71,7 +74,6 @@ class Program extends Component{
           bsSize="medium"
           items={Math.ceil(shows.length / pageSize)}
           boundaryLinks={true}
-          last={true}
           maxButtons={5}
           activePage={activePage}
           onSelect={selectPage} />
@@ -80,6 +82,15 @@ class Program extends Component{
   }
 }
 
+function filterShows(show){
+  let filters = this.filters;
+
+  if(!filters[show.day]) {
+    return false;
+  }
+
+  return true;
+}
 
 Program.propTypes = {
   shows: PropTypes.array
@@ -89,7 +100,7 @@ Program.propTypes = {
 // Note: use https://github.com/faassen/reselect for better performance.
 const mapStateToProps = (state) => {
   return {
-    shows: state.program.shows,
+    shows: state.program.shows.filter(filterShows.bind(state.program)),
     sorting: state.program.sorting,
     activePage: state.program.activePage,
     filters: state.program.filters
@@ -106,6 +117,9 @@ const mapDispatchToProps = (dispatch) => {
     },
     selectShow: (show) => {
       dispatch({ type: 'SELECT_SHOW', show: show });
+    },
+    filter: (event) => {
+      dispatch({ type: 'CHANGE_FILTERS', key: event.target.value})
     }
   }
 }

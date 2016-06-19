@@ -24,6 +24,7 @@ var formatEntries = function(data, day){
       time.add(1, 'days');
     }
     return {
+      day: day,
       time: time,
       act: item.entrydata[1].text,
       stage: item.entrydata[2].text,
