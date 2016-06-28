@@ -9,6 +9,9 @@ import App from './app/App';
 import About from './app/components/About';
 import Program from './app/components/Program';
 
+import fa from './assets/font-awesome-4.6.3/css/font-awesome.min.css'
+import style from './assets/main.css'
+
 const store = (window.devToolsExtension ?
   window.devToolsExtension()(createStore) :
   createStore)(rootReducer , {});

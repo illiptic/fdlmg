@@ -2,7 +2,8 @@ import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { Pagination } from 'react-bootstrap';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
-import { sorter } from '../utils/utils.js';
+import { colWidth } from '../utils/config.js'
+import { orderAndSlice, sortable, sorter } from '../utils/utils.js';
 import _ from 'lodash';
 import moment from 'moment';
 
@@ -10,37 +11,47 @@ class Program extends Component{
 
   render() {
     // Injected by connect() call:
-    const { filter, filters, selected, shows, sort, sorting, activePage, selectPage, selectShow } = this.props;
+    const { doSearch, filter, filters, toggleSelection, selected, shows, sort, sorting, activePage, selectPage, selectShow } = this.props;
 
     let pageSize = 5;
-    let selectRowProp = {
-      mode: "checkbox",  //checkbox for multi select, radio for single select.
-      clickToSelect: true,   //click row will trigger a selection on that row.
-      bgColor: "rgb(10, 120, 120)"   //selected row background color
-    };
-
-    /*
-    <BootstrapTable
-      data={shows}
-      striped={true}
-      selectRow={selectRowProp}
-      columnFilter={true}>
-      <TableHeaderColumn dataField="time" dataAlign="left" dataSort={true} dataFormat={(a) => {a}}>Time</TableHeaderColumn>
-      <TableHeaderColumn dataField="act" isKey={true} dataAlign="left" dataSort={true}>Act</TableHeaderColumn>
-      <TableHeaderColumn dataField="stage" dataAlign="left" dataSort={true}>Stage</TableHeaderColumn>
-    </BootstrapTable>
-    */
 
     return (
       <div>
         <h1>Program</h1>
+        <form>
+        <div className="form-group">
         {['friday', 'saturday', 'sunday'].map(day =>
-          <label key={day}>
-            <input type="checkbox" value={day} checked={filters[day]} onChange={filter}/>
-            {moment(day, "dddd").format("dddd")}
-          </label>
+          <div className="checkbox" key={day}>
+            <label>
+              <input type="checkbox" value={day} checked={filters[day]} onChange={filter}/>
+              {moment(day, "dddd").format("dddd")}
+            </label>
+          </div>
         )}
-        <table className="table table-striped table-hover">
+        </div>
+        <div className="checkbox">
+          <label>
+            <input type="checkbox" checked={filters.selection} onChange={toggleSelection}/>
+            Selection only
+          </label>
+        </div>
+        <div className="form-group">
+          <label>General Search</label>
+          <input className="form-control" type="text" value={filters.search} onChange={doSearch}/>
+        </div>
+        </form>
+        <table style={{height: '400px'}} className="table table-striped table-hover">
+          <colgroup>
+          {[
+            'selection',
+            'time',
+            'act',
+            'stage',
+            'genre'
+          ].map(key =>
+            <col key={key} className={key}/>
+          )}
+          </colgroup>
           <thead>
             <tr>
               {[
@@ -50,15 +61,17 @@ class Program extends Component{
                 'stage',
                 'genre'
               ].map(label =>
-                <th key={label} onClick={() => sort(label)}>
-                {label}
+                <th className={sortable(label) ? 'sortable' : ''} key={label} onClick={() => {
+                  sort(label)
+                }}>
+                <i className={iconClass(label, sorting)}></i>
+                 {label}
                 </th>
               )}
             </tr>
           </thead>
           <tbody>
-            {_.orderBy(shows, sorting.column, sorting.dir ? 'asc' : 'desc')
-              .slice( (activePage-1)*pageSize, activePage * pageSize )
+            {orderAndSlice(shows, sorting, activePage, pageSize)
               .map(show =>
               <tr key={show.id} onClick={selectShow.bind(this, show)}>
                 <td><input type="checkbox" checked={!!show.selected} readOnly={true}/></td>
@@ -82,11 +95,31 @@ class Program extends Component{
   }
 }
 
+function iconClass(label, sorting){
+  if(label !== sorting.column){
+    return 'fa fa-sort'
+  } else {
+    let base = 'fa fa-sort-'
+    return base + (sorting.dir ? 'asc' : 'desc')
+  }
+}
+
 function filterShows(show){
   let filters = this.filters;
 
   if(!filters[show.day]) {
-    return false;
+    return false
+  }
+
+  if(filters.selection && !show.selected){
+     return false
+  }
+
+  if(filters.search) {
+    let rgex = new RegExp(filters.search, 'i')
+    return _.some(_.values(_.pick(show, ['act', 'stage'])), (value) => {
+      return rgex.test(value)
+    })
   }
 
   return true;
@@ -120,6 +153,12 @@ const mapDispatchToProps = (dispatch) => {
     },
     filter: (event) => {
       dispatch({ type: 'CHANGE_FILTERS', key: event.target.value})
+    },
+    toggleSelection: (event) => {
+      dispatch({ type: 'CHANGE_FILTERS', key: 'selection'})
+    },
+    doSearch: (event) => {
+      dispatch({ type: 'DO_SEARCH', value: event.target.value})
     }
   }
 }

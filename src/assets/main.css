@@ -1,0 +1,36 @@
+.fa {
+  margin-right: 2px;
+}
+
+.fa.fa-sort {
+  display: none;
+}
+
+.sortable {
+  cursor: pointer;
+}
+
+.sortable .fa.fa-sort {
+  display: inline-block;
+  color: lightgrey;
+}
+
+col.selection {
+  width: 5%;
+}
+
+col.time {
+  width: 15%;
+}
+
+col.act {
+  width: 50%;
+}
+
+col.stage {
+  width: 20%;
+}
+
+col.genre {
+  width: 10%;
+}

@@ -3,6 +3,7 @@ import moment from 'moment';
 import friday from '../../../data/friday.json';
 import saturday from '../../../data/saturday.json';
 import sunday from '../../../data/sunday.json';
+import {sortableColumns} from '../utils/config.js'
 
 let tmp = 1;
 friday.forEach(function(i){
@@ -19,12 +20,14 @@ const initialState = {
   shows: friday.concat(saturday).concat(sunday),
   sorting: {
     'column': 'time',
-    'dir': 1
+    'dir': true
   },
   filters: {
     friday: true,
     saturday: true,
-    sunday: false
+    sunday: false,
+    selection: false,
+    search: ''
   },
   activePage: 1
 }
@@ -35,18 +38,23 @@ export default function program(state = initialState, action){
     case 'SELECT_PAGE': return selectPage(state, action.page)
     case 'SELECT_SHOW': return selectShow(state, action.show)
     case 'CHANGE_FILTERS': return changeFilters(state, action.key)
+    case 'DO_SEARCH': return doSearch(state, action.value)
     default:
       return state
   }
 }
 
 function sort(state, column){
-  return Object.assign({}, state, {
-    sorting: {
-    'column': column,
-    'dir': state.sorting.column === column ? !state.sorting.dir : true
-    }
-  })
+  if(_.includes(sortableColumns, column)){
+    return Object.assign({}, state, {
+      sorting: {
+      'column': column,
+      'dir': state.sorting.column === column ? !state.sorting.dir : true
+      }
+    })
+  } else {
+    return state;
+  }
 }
 
 function selectPage(state, page){
@@ -58,6 +66,14 @@ function selectPage(state, page){
 function changeFilters(state, key){
   let filters = Object.assign({}, state.filters)
   filters[key] = !filters[key]
+  return Object.assign({}, state, {
+    filters: filters
+  })
+}
+
+function doSearch(state, value) {
+  let filters = Object.assign({}, state.filters)
+  filters.search = value
   return Object.assign({}, state, {
     filters: filters
   })
