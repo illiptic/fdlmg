@@ -34,3 +34,7 @@ col.stage {
 col.genre {
   width: 10%;
 }
+
+tr.selected {
+  background-color: #002255;
+}

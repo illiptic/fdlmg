@@ -1,3 +1,17 @@
+export const columns = [
+  'selection',
+  'time',
+  'act',
+  'stage',
+  'genre'
+]
+
+export const searchableColumns = [
+  'act',
+  'stage',
+  'genre'
+]
+
 export const sortableColumns = [
   'time',
   'act',

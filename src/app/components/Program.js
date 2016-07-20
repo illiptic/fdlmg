@@ -2,7 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { Pagination } from 'react-bootstrap';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
-import { colWidth } from '../utils/config.js'
+import { columns, searchableColumns } from '../utils/config.js'
 import { orderAndSlice, sortable, sorter } from '../utils/utils.js';
 import _ from 'lodash';
 import moment from 'moment';
@@ -13,7 +13,7 @@ class Program extends Component{
     // Injected by connect() call:
     const { doSearch, filter, filters, toggleSelection, selected, shows, sort, sorting, activePage, selectPage, selectShow } = this.props;
 
-    let pageSize = 5;
+    let pageSize = 10;
 
     return (
       <div>
@@ -42,25 +42,13 @@ class Program extends Component{
         </form>
         <table style={{height: '400px'}} className="table table-striped table-hover">
           <colgroup>
-          {[
-            'selection',
-            'time',
-            'act',
-            'stage',
-            'genre'
-          ].map(key =>
+          {columns.map(key =>
             <col key={key} className={key}/>
           )}
           </colgroup>
           <thead>
             <tr>
-              {[
-                'selection',
-                'time',
-                'act',
-                'stage',
-                'genre'
-              ].map(label =>
+              {columns.map(label =>
                 <th className={sortable(label) ? 'sortable' : ''} key={label} onClick={() => {
                   sort(label)
                 }}>
@@ -73,7 +61,7 @@ class Program extends Component{
           <tbody>
             {orderAndSlice(shows, sorting, activePage, pageSize)
               .map(show =>
-              <tr key={show.id} onClick={selectShow.bind(this, show)}>
+              <tr className={show.selected ? 'selected' : ''} key={show.id} onClick={selectShow.bind(this, show)}>
                 <td><input type="checkbox" checked={!!show.selected} readOnly={true}/></td>
                 <td>{moment(show.time).format('dddd, LT')}</td>
                 <td>{show.act}</td>
@@ -117,7 +105,7 @@ function filterShows(show){
 
   if(filters.search) {
     let rgex = new RegExp(filters.search, 'i')
-    return _.some(_.values(_.pick(show, ['act', 'stage'])), (value) => {
+    return _.some(_.values(_.pick(show, searchableColumns)), (value) => {
       return rgex.test(value)
     })
   }
